@@ -10,6 +10,10 @@ pip install plotly
 ```
 python entropy_calculator.py <alignment.fasta> [title] [smooth_factor] [--lower-threshold VALUE] [--upper-threshold VALUE]
 ```
+The interactive app can be used as below if you have a venv with the required installations (streamlit and plotly):
+```
+.venv/bin/python -m streamlit run app.py
+```
 
 ## Parameters
 - `<alignment.fasta>` (required): Input FASTA alignment file (supports .gz)
