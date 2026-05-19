@@ -247,6 +247,56 @@ if alignment_file:
                 file_name=f"{os.path.splitext(alignment_file)[0]}_entropy.csv",
                 mime="text/csv"
             )
+            
+            # Export highlighted regions if thresholds are applied
+            if threshold_type != "None":
+                st.subheader("Export Highlighted Regions")
+                
+                # Identify highlighted regions
+                regions = []
+                in_region = False
+                region_start = None
+                
+                for pos in positions:
+                    entropy_val = entropies_dict[pos]
+                    meets_criteria = False
+                    
+                    if lower_threshold is not None and upper_threshold is not None:
+                        meets_criteria = lower_threshold <= entropy_val <= upper_threshold
+                    elif lower_threshold is not None:
+                        meets_criteria = entropy_val <= lower_threshold
+                    elif upper_threshold is not None:
+                        meets_criteria = entropy_val >= upper_threshold
+                    
+                    if meets_criteria:
+                        if not in_region:
+                            region_start = pos
+                            in_region = True
+                    else:
+                        if in_region:
+                            regions.append((region_start, pos - 1))
+                            in_region = False
+                
+                if in_region:
+                    regions.append((region_start, positions[-1]))
+                
+                # Generate CSV with expanded regions
+                region_csv = "Region,Position,Entropy\n"
+                for region_num, (start, end) in enumerate(regions, 1):
+                    # Expand region by smooth factor
+                    expanded_start = max(0, start - int(smooth/2))
+                    expanded_end = min(positions[-1], end + int(smooth/2))
+                    
+                    for pos in range(expanded_start, expanded_end + 1):
+                        if pos in entropies_dict:
+                            region_csv += f"region_{region_num},{pos},{entropies_dict[pos]:.6f}\n"
+                
+                st.download_button(
+                    label="Download highlighted regions (CSV)",
+                    data=region_csv,
+                    file_name=f"{os.path.splitext(alignment_file)[0]}_highlighted_regions.csv",
+                    mime="text/csv"
+                )
         
         # Summary statistics
         with st.expander("📈 Summary Statistics"):
